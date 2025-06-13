@@ -18,6 +18,7 @@ const AdminCertificates = () => {
     date: '',
     sourceType: 'file',
     url: '',
+    fileType: '',
   });
 
   // File size limit (in bytes)
@@ -50,10 +51,11 @@ const AdminCertificates = () => {
       title: certificate.title,
       description: certificate.description,
       file: null,
-      previewUrl: certificate.previewUrl,
+      previewUrl: (certificate.sourceType === 'file' && certificate.fileType?.startsWith('image/')) ? certificate.fileUrl : '',
       date: certificate.date,
       sourceType: certificate.sourceType || 'file',
       url: certificate.url || '',
+      fileType: certificate.fileType || '',
     } : {
       title: '',
       description: '',
@@ -62,6 +64,7 @@ const AdminCertificates = () => {
       date: '',
       sourceType: 'file',
       url: '',
+      fileType: '',
     });
     setIsModalOpen(true);
   };
@@ -77,6 +80,7 @@ const AdminCertificates = () => {
       date: '',
       sourceType: 'file',
       url: '',
+      fileType: '',
     });
   };
 
@@ -351,54 +355,75 @@ const AdminCertificates = () => {
                 </div>
 
                 {formData.sourceType === 'file' ? (
-                  <div
-                    className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md ${
-                      isDragging ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300'
-                    }`}
-                    onDragEnter={(e) => handleDragEvents(e, true)}
-                    onDragLeave={(e) => handleDragEvents(e, false)}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={handleDrop}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <div className="space-y-1 text-center">
-                      <svg className="mx-auto h-12 w-12 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                      </svg>
-                      <div className="flex text-sm text-gray-600">
-                        <label className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500">
-                          <span>Upload a file</span>
-                          <input
-                            ref={fileInputRef}
-                            type="file"
-                            className="sr-only"
-                            onChange={(e) => handleFile(e.target.files[0])}
-                            accept=".pdf,.jpg,.jpeg,.png"
-                          />
-                        </label>
-                        <p className="pl-1">or drag and drop</p>
+                  <>
+                    {formData.file || selectedCertificate?.sourceType === 'file' ? (
+                      <div className="mt-4 p-4 border border-gray-300 rounded-md bg-gray-50 flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          {formData.file?.type?.startsWith('image/') || (selectedCertificate?.sourceType === 'file' && selectedCertificate?.fileType?.startsWith('image/')) ? (
+                            <img src={formData.previewUrl || selectedCertificate?.fileUrl} alt="Preview" className="h-16 w-16 object-cover rounded-md" />
+                          ) : (
+                            <svg className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                          )}
+                          <span className="text-sm font-medium text-gray-700">
+                            {formData.file?.name || selectedCertificate?.title + (selectedCertificate?.fileType ? `.${selectedCertificate.fileType.split('/')[1]}` : '')}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, file: null, previewUrl: '', fileType: '' }))}
+                          className="text-red-500 hover:text-red-700 text-sm"
+                        >
+                          Clear
+                        </button>
                       </div>
-                      <p className="text-xs text-gray-500">PDF, JPG, PNG files up to 10MB</p>
-                    </div>
-                  </div>
+                    ) : (
+                      <div
+                        className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md ${
+                          isDragging ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300'
+                        }`}
+                        onDragEnter={(e) => handleDragEvents(e, true)}
+                        onDragLeave={(e) => handleDragEvents(e, false)}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={handleDrop}
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <div className="space-y-1 text-center">
+                          <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                          <div className="flex text-sm text-gray-600">
+                            <label className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500">
+                              <span>Upload a file</span>
+                              <input
+                                ref={fileInputRef}
+                                type="file"
+                                className="sr-only"
+                                onChange={(e) => handleFile(e.target.files[0])}
+                                accept={allowedFileTypes.join(',')}
+                              />
+                            </label>
+                            <p className="pl-1">or drag and drop</p>
+                          </div>
+                          <p className="text-xs text-gray-500">PDF, PNG, JPG up to 10MB</p>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Document URL</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Certificate URL
+                    </label>
                     <input
                       type="url"
                       name="url"
                       value={formData.url}
                       onChange={handleInputChange}
-                      placeholder="Enter document URL"
+                      placeholder="Enter certificate URL"
                       className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     />
-                  </div>
-                )}
-
-                {formData.previewUrl && formData.fileType?.startsWith('image/') && (
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700">Preview</label>
-                    <img src={formData.previewUrl} alt="Preview" className="mt-2 w-full h-48 object-cover rounded-lg" />
                   </div>
                 )}
 
@@ -427,7 +452,7 @@ const AdminCertificates = () => {
                     disabled={uploading}
                     className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
                   >
-                    {uploading ? 'Uploading...' : (selectedCertificate ? 'Update' : 'Add')}
+                    {uploading ? 'Saving...' : (selectedCertificate ? 'Update' : 'Add')}
                   </button>
                 </div>
               </form>

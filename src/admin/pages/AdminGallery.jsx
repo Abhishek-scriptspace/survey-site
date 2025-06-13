@@ -19,6 +19,7 @@ const AdminGallery = () => {
     previewUrl: '',
     sourceType: 'file',
     url: '',
+    uploadDate: '',
   });
 
   // File size limits (in bytes)
@@ -67,6 +68,7 @@ const AdminGallery = () => {
       previewUrl: mediaItem.sourceType === 'file' ? mediaItem.fileUrl : mediaItem.url,
       sourceType: mediaItem.sourceType || 'file',
       url: mediaItem.url || '',
+      uploadDate: mediaItem.uploadDate ? new Date(mediaItem.uploadDate).toISOString().split('T')[0] : '',
     } : {
       type: 'image',
       title: '',
@@ -75,6 +77,7 @@ const AdminGallery = () => {
       previewUrl: '',
       sourceType: 'file',
       url: '',
+      uploadDate: '',
     });
     setIsModalOpen(true);
   };
@@ -90,6 +93,7 @@ const AdminGallery = () => {
       previewUrl: '',
       sourceType: 'file',
       url: '',
+      uploadDate: '',
     });
   };
 
@@ -156,7 +160,7 @@ const AdminGallery = () => {
         fd.append('type', formData.type);
         fd.append('title', formData.title);
         fd.append('description', formData.description);
-        fd.append('uploadDate', submitDate);
+        fd.append('uploadDate', formData.uploadDate || submitDate);
         fd.append('sourceType', 'file');
         if (formData.file) fd.append('file', formData.file);
         response = await fetch('http://localhost:5000/api/gallery', {
@@ -172,7 +176,7 @@ const AdminGallery = () => {
             type: formData.type,
             title: formData.title,
             description: formData.description,
-            uploadDate: submitDate,
+            uploadDate: formData.uploadDate || submitDate,
             sourceType: 'url',
             url: formData.url,
           }),
@@ -356,39 +360,74 @@ const AdminGallery = () => {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Upload Date</label>
+                  <input
+                    type="date"
+                    name="uploadDate"
+                    value={formData.uploadDate}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  />
+                </div>
+
                 {formData.sourceType === 'file' ? (
-                  <div
-                    className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md ${
-                      isDragging ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300'
-                    }`}
-                    onDragEnter={(e) => handleDragEvents(e, true)}
-                    onDragLeave={(e) => handleDragEvents(e, false)}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={handleDrop}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <div className="space-y-1 text-center">
-                      <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                      <div className="flex text-sm text-gray-600">
-                        <label className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500">
-                          <span>Upload a file</span>
-                          <input
-                            ref={fileInputRef}
-                            type="file"
-                            className="sr-only"
-                            onChange={(e) => handleFile(e.target.files[0])}
-                            accept={formData.type === 'image' ? '.jpg,.jpeg,.png,.gif' : '.mp4,.avi,.mov,.wmv,.mkv'}
-                          />
-                        </label>
-                        <p className="pl-1">or drag and drop</p>
+                  <>
+                    {formData.file || (selectedMedia && selectedMedia.sourceType === 'file') ? (
+                      <div className="mt-4 p-4 border border-gray-300 rounded-md bg-gray-50 flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          {(formData.file?.type?.startsWith('image/') || (selectedMedia?.sourceType === 'file' && selectedMedia?.type === 'image')) && formData.previewUrl ? (
+                            <img src={formData.previewUrl} alt="Preview" className="h-16 w-16 object-cover rounded-md" />
+                          ) : (
+                            <svg className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path d="M9 17v-6a2 2 0 012-2h2a2 2 0 012 2v6m-4 2a2 2 0 100-4 2 2 0 000 4zm0 0l-1.429 1.429C10.742 20.781 10.14 21 9.5 21H9a2 2 0 01-2-2v-3.586a1 1 0 01.293-.707l2.283-2.283m0 0a2 2 0 012.828 0M16 17v-6a2 2 0 00-2-2h-2a2 2 0 00-2 2v6m4 2a2 2 0 100-4 2 2 0 000 4zm0 0l1.429 1.429C13.258 20.781 13.86 21 14.5 21H15a2 2 0 002-2v-3.586a1 1 0 00-.293-.707l-2.283-2.283" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          )}
+                          <span className="text-sm font-medium text-gray-700">
+                            {formData.file?.name || selectedMedia?.title + '.' + (selectedMedia?.fileType?.split('/')[1] || selectedMedia?.fileUrl?.split('.').pop())}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, file: null, previewUrl: '', url: '' }))}
+                          className="text-red-500 hover:text-red-700 text-sm"
+                        >
+                          Clear
+                        </button>
                       </div>
-                      <p className="text-xs text-gray-500">
-                        {formData.type === 'image' ? 'PNG, JPG, GIF up to 5MB' : 'MP4, AVI, MOV, WMV, MKV up to 50MB'}
-                      </p>
-                    </div>
-                  </div>
+                    ) : (
+                      <div
+                        className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md ${
+                          isDragging ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300'
+                        }`}
+                        onDragEnter={(e) => handleDragEvents(e, true)}
+                        onDragLeave={(e) => handleDragEvents(e, false)}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={handleDrop}
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <div className="space-y-1 text-center">
+                          <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                          <div className="flex text-sm text-gray-600">
+                            <label className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500">
+                              <span>Upload a file</span>
+                              <input
+                                ref={fileInputRef}
+                                type="file"
+                                className="sr-only"
+                                onChange={(e) => handleFile(e.target.files[0])}
+                                accept={allowedImageTypes.join(',') + ',' + allowedVideoTypes.join(',')}
+                              />
+                            </label>
+                            <p className="pl-1">or drag and drop</p>
+                          </div>
+                          <p className="text-xs text-gray-500">Images up to 5MB, Videos up to 50MB</p>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
@@ -419,7 +458,7 @@ const AdminGallery = () => {
                     disabled={uploading}
                     className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
                   >
-                    {uploading ? 'Uploading...' : (selectedMedia ? 'Update' : 'Add')}
+                    {uploading ? 'Saving...' : (selectedMedia ? 'Update' : 'Add')}
                   </button>
                 </div>
               </form>
