@@ -1,9 +1,15 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 
 const AdminNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken');
+    navigate('/');
+  };
 
   const navigation = [
     { name: 'Dashboard', href: '/admin/dashboard' },
@@ -34,6 +40,12 @@ const AdminNavbar = () => {
                 {item.name}
               </Link>
             ))}
+            <button
+              onClick={handleLogout}
+              className="text-sm font-medium text-gray-900 hover:text-indigo-600"
+            >
+              Logout
+            </button>
           </div>
 
           {/* Mobile menu button */}
@@ -66,6 +78,15 @@ const AdminNavbar = () => {
                 {item.name}
               </Link>
             ))}
+            <button
+              onClick={() => {
+                handleLogout();
+                setIsOpen(false);
+              }}
+              className="block w-full text-left pl-3 pr-4 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50"
+            >
+              Logout
+            </button>
           </div>
         </div>
       )}
