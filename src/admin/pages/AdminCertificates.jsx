@@ -136,6 +136,7 @@ const AdminCertificates = () => {
 
       let response, data;
       const submitDate = formData.date || new Date().toISOString().split('T')[0];
+      
       if (formData.sourceType === 'file') {
         const fd = new FormData();
         fd.append('title', formData.title);
@@ -144,10 +145,17 @@ const AdminCertificates = () => {
         fd.append('sourceType', 'file');
         fd.append('fileType', formData.fileType || '');
         if (formData.file) fd.append('file', formData.file);
+
         response = await fetch('http://localhost:5000/api/certificates', {
           method: 'POST',
           body: fd,
         });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to save certificate');
+        }
+
         data = await response.json();
       } else {
         response = await fetch('http://localhost:5000/api/certificates', {
@@ -162,10 +170,15 @@ const AdminCertificates = () => {
             fileType: formData.fileType || '',
           }),
         });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to save certificate');
+        }
+
         data = await response.json();
       }
 
-      if (!response.ok) throw new Error(data.error || 'Failed to save certificate');
       setCertificates(prev => selectedCertificate
         ? prev.map(cert => cert.id === selectedCertificate.id ? data : cert)
         : [...prev, data]
@@ -173,6 +186,7 @@ const AdminCertificates = () => {
       toast.success(selectedCertificate ? 'Certificate updated successfully' : 'Certificate added successfully');
       handleCloseModal();
     } catch (error) {
+      console.error('Error saving certificate:', error);
       toast.error(error.message || 'Failed to save certificate');
     } finally {
       setUploading(false);

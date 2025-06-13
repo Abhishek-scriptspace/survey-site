@@ -38,12 +38,16 @@ const AdminGallery = () => {
   useEffect(() => {
     const fetchMedia = async () => {
       try {
+        setLoading(true);
         const res = await fetch('http://localhost:5000/api/gallery');
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
         const data = await res.json();
-        setMedia(data);
+        setMedia(Array.isArray(data) ? data : []);
       } catch (error) {
-        toast.error('Failed to fetch media');
         console.error('Error fetching media:', error);
+        toast.error('Failed to fetch media');
         setMedia([]); // Set to empty array on error
       } finally {
         setLoading(false);
@@ -60,7 +64,7 @@ const AdminGallery = () => {
       title: mediaItem.title,
       description: mediaItem.description,
       file: null,
-      previewUrl: mediaItem.previewUrl,
+      previewUrl: mediaItem.sourceType === 'file' ? mediaItem.fileUrl : mediaItem.url,
       sourceType: mediaItem.sourceType || 'file',
       url: mediaItem.url || '',
     } : {
@@ -204,7 +208,9 @@ const AdminGallery = () => {
     }
   };
 
-  const filteredMedia = activeTab === 'all' ? media : media.filter(item => item.type === activeTab);
+  const filteredMedia = activeTab === 'all' 
+    ? (Array.isArray(media) ? media : [])
+    : (Array.isArray(media) ? media.filter(item => item.type === activeTab) : []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -242,6 +248,10 @@ const AdminGallery = () => {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
               <p className="mt-4 text-gray-500">Loading gallery...</p>
             </div>
+          ) : filteredMedia.length === 0 ? (
+            <div className="mt-8 text-center">
+              <p className="text-gray-500">No media items found.</p>
+            </div>
           ) : (
             <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {filteredMedia.map(item => (
@@ -254,11 +264,11 @@ const AdminGallery = () => {
                     </p>
                     <div className="mt-4">
                       {item.type === 'image' ? (
-                        <img src={item.previewUrl} alt={item.title} className="w-full h-48 object-cover rounded-lg" />
+                        <img src={item.sourceType === 'file' ? item.fileUrl : item.url} alt={item.title} className="w-full h-48 object-cover rounded-lg" />
                       ) : (
                         <div className="relative pb-[56.25%] h-0">
                           <iframe
-                            src={item.previewUrl}
+                            src={item.sourceType === 'file' ? item.fileUrl : item.url}
                             className="absolute top-0 left-0 w-full h-full rounded-lg"
                             frameBorder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

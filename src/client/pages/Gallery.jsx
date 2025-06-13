@@ -93,7 +93,7 @@ const Gallery = () => {
                   <div className="mt-4">
                     {item.type === 'image' ? (
                       <img
-                        src={item.source_type === 'file' ? 'http://localhost:5000' + item.file_url : item.file_url}
+                        src={item.fileUrl}
                         alt={item.title}
                         className="w-full h-48 object-cover rounded-lg"
                       />
@@ -101,7 +101,7 @@ const Gallery = () => {
                       <div className="relative pb-[56.25%] h-0">
                         <iframe
                           className="absolute top-0 left-0 w-full h-full rounded-lg"
-                          src={item.source_type === 'file' ? 'http://localhost:5000' + item.file_url : item.file_url}
+                          src={item.fileUrl}
                           title={item.title}
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                           allowFullScreen
@@ -136,7 +136,7 @@ const Gallery = () => {
                 <div className="mt-4">
                   {selectedMedia.type === 'image' ? (
                     <img
-                      src={selectedMedia.source_type === 'file' ? 'http://localhost:5000' + selectedMedia.file_url : selectedMedia.file_url}
+                      src={selectedMedia.fileUrl}
                       alt={selectedMedia.title}
                       className="w-full rounded-lg"
                     />
@@ -144,7 +144,7 @@ const Gallery = () => {
                     <div className="relative pb-[56.25%] h-0">
                       <iframe
                         className="absolute top-0 left-0 w-full h-full rounded-lg"
-                        src={selectedMedia.source_type === 'file' ? 'http://localhost:5000' + selectedMedia.file_url : selectedMedia.file_url}
+                        src={selectedMedia.fileUrl}
                         title={selectedMedia.title}
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen

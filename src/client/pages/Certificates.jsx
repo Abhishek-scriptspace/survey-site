@@ -87,7 +87,7 @@ const Certificates = () => {
                 <div className="mt-4">
                   {certificate.file_type?.startsWith('image/') ? (
                     <img
-                      src={'http://localhost:5000' + certificate.file_url}
+                      src={certificate.fileUrl}
                       alt={certificate.title}
                       className="w-full h-64 object-cover rounded-lg"
                     />
@@ -104,7 +104,7 @@ const Certificates = () => {
                 </div>
                 <div className="mt-4">
                   <button
-                    onClick={() => window.open('http://localhost:5000' + certificate.file_url, '_blank')}
+                    onClick={() => window.open(certificate.fileUrl, '_blank')}
                     className="w-full inline-flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7091E6] hover:bg-[#8697C4] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7091E6] transition-colors duration-200"
                   >
                     {certificate.file_type?.startsWith('image/') ? 'View Image' : 'View PDF'}
